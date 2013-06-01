@@ -4,12 +4,13 @@ module Crypto.Number.PolynomialBin
     , fromList
     , toPolynomial
     , fromPolynomial
+    , mulPolyBin
     ) where
 
 import Data.List (sort)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
-import Crypto.Number.Polynomial (Monomial(..), Polynomial)
+import Crypto.Number.Polynomial (Monomial(..), Polynomial, mulPoly)
 import qualified Crypto.Number.Polynomial as P
 
 newtype PolynomialBin = PolynomialBin (Vector Int)
@@ -27,3 +28,6 @@ fromPolynomial :: Polynomial -> PolynomialBin
 fromPolynomial = fromList . map (\(Monomial w _) -> w)
                           . filter (\(Monomial _ n) -> odd n)
                           . P.toList
+
+mulPolyBin :: PolynomialBin -> PolynomialBin -> PolynomialBin
+mulPolyBin p1 p2 = fromPolynomial $ toPolynomial p1 `mulPoly` toPolynomial p2
