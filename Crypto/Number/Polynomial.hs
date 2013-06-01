@@ -64,7 +64,6 @@ getWeight (Polynomial p) n = look 0
                     LT -> Nothing
                     EQ -> Just v
                     GT -> look (i+1)
-        
 
 mergePoly :: (Integer -> Integer -> Integer) -> Polynomial -> Polynomial -> Polynomial
 mergePoly f (Polynomial p1) (Polynomial p2) = fromList $ loop 0 0
