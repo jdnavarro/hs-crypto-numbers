@@ -6,6 +6,7 @@ module Crypto.Number.PolynomialBin
     , fromPolynomial
     , mulPolyBin
     , addPolyBin
+    , reducePolyBin
     ) where
 
 import Data.Bits (xor)
@@ -47,8 +48,17 @@ addPolyBin p1 p2 = fromInt $ toInt p1 `xor` toInt p2
 mulPolyBin :: PolynomialBin -> PolynomialBin -> PolynomialBin
 mulPolyBin p1 p2 = fromPolynomial $ toPolynomial p1 `mulPoly` toPolynomial p2
 
+reducePolyBin :: Int -> PolynomialBin -> PolynomialBin -> PolynomialBin
+reducePolyBin m fx@(PolynomialBin v0) p@(PolynomialBin v)
+    | m < n = reducePolyBin m fx
+            $ p `addPolyBin` (PolynomialBin $ V.map ((n - m) +) v0)
+    | otherwise = p
+  where
+    n = V.head v
+
 readBin :: String -> Int
 readBin = fst . head . readInt 2 (`elem` "01") (\c -> if c == '1' then 1 else 0)
 
 showBin :: Int -> String
 showBin n = showIntAtBase 2 (\x -> if x == 0 then '0' else '1') n ""
+
