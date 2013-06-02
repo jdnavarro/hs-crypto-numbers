@@ -28,12 +28,12 @@ toList (PolynomialBin v) = V.toList v
 fromList :: [Int] -> PolynomialBin
 fromList = PolynomialBin . V.fromList . reverse . sort
 
-toInt :: PolynomialBin -> Int
-toInt (PolynomialBin v) =
+toInteg :: PolynomialBin -> Integer
+toInteg (PolynomialBin v) =
     readBin . reverse $ map (\n -> if n `V.elem` v then '1' else '0') [0 .. V.head v]
 
-fromInt :: Int -> PolynomialBin
-fromInt n = fromList . map (m-) $ elemIndices '1' s
+fromInteg :: Integer -> PolynomialBin
+fromInteg n = fromList . map (m-) $ elemIndices '1' s
   where s = showBin n
         m = length s - 1
 
@@ -46,7 +46,7 @@ fromPolynomial = fromList . map (\(Monomial w _) -> w)
                           . P.toList
 
 addPolyBin :: PolynomialBin -> PolynomialBin -> PolynomialBin
-addPolyBin p1 p2 = fromInt $ toInt p1 `xor` toInt p2
+addPolyBin p1 p2 = fromInteg $ toInteg p1 `xor` toInteg p2
 
 mulPolyBin :: PolynomialBin -> PolynomialBin -> PolynomialBin
 mulPolyBin p1 p2 = fromPolynomial $ toPolynomial p1 `mulPoly` toPolynomial p2
@@ -59,8 +59,8 @@ reducePolyBin m fx@(PolynomialBin v0) p@(PolynomialBin v)
   where
     n = V.head v
 
-readBin :: String -> Int
+readBin :: String -> Integer
 readBin = fst . head . readInt 2 (`elem` "01") (\c -> if c == '1' then 1 else 0)
 
-showBin :: Int -> String
+showBin :: Integer -> String
 showBin n = showIntAtBase 2 (\x -> if x == 0 then '0' else '1') n ""
