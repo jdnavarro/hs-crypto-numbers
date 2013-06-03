@@ -17,9 +17,11 @@ import Data.Bits (xor)
 import Data.List (sort, elemIndices, intercalate)
 import Data.Char (intToDigit)
 import Numeric (readInt, showIntAtBase)
+import Control.Monad (join)
+import Control.Arrow ((***))
 import Data.Vector (Vector)
 import qualified Data.Vector as V
-import Crypto.Number.Polynomial (Monomial(..), Polynomial, mulPoly)
+import Crypto.Number.Polynomial (Monomial(..), Polynomial, mulPoly, divPoly)
 import qualified Crypto.Number.Polynomial as P
 
 newtype PolynomialBin = PolynomialBin (Vector Int) deriving (Eq,Ord)
@@ -57,6 +59,10 @@ addPolyBin p1 p2 = fromInteg $ toInteg p1 `xor` toInteg p2
 
 mulPolyBin :: PolynomialBin -> PolynomialBin -> PolynomialBin
 mulPolyBin p1 p2 = fromPolynomial $ toPolynomial p1 `mulPoly` toPolynomial p2
+
+divPolyBin :: PolynomialBin -> PolynomialBin -> (PolynomialBin, PolynomialBin)
+divPolyBin p1 p2 = mapTuple fromPolynomial $ toPolynomial p1 `divPoly` toPolynomial p2
+    where mapTuple = join (***)
 
 reducePolyBin :: Int -> PolynomialBin -> PolynomialBin -> PolynomialBin
 reducePolyBin m fx@(PolynomialBin v0) p@(PolynomialBin v)
