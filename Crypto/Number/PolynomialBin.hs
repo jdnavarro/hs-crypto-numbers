@@ -13,6 +13,7 @@ module Crypto.Number.PolynomialBin
     -- * binary polynomial operations as integers
     , add
     , multiply
+    , multiplyF2m
     ) where
 
 import Data.Bits (xor)
@@ -91,5 +92,5 @@ multiply n1 n2 = toInteg $ fromInteg n1 `mulPolyBin` fromInteg n2
 reduce :: Int -> Integer -> Integer -> Integer
 reduce m fx p = toInteg $ reducePolyBin m (fromInteg fx) (fromInteg p)
 
-multiplication :: Integer -> Integer -> Integer
-multiplication n1 n2 = toInteg $ fromInteg n1 `mulPolyBin` fromInteg n2
+multiplyF2m :: Int -> Integer -> Integer -> Integer -> Integer
+multiplyF2m m fx p1 p2 = reduce m fx $ p1 `multiply` p2
