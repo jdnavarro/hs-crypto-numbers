@@ -7,10 +7,12 @@ module Crypto.Number.PolynomialBin
     , fromPolynomial
     , mulPolyBin
     , addPolyBin
+    , mulPolyBin
+    , divPolyBin
     , reducePolyBin
     -- * binary polynomial operations as integers
-    , addition
-    , multiplication
+    , add
+    , multiply
     ) where
 
 import Data.Bits (xor)
@@ -80,8 +82,14 @@ showBin = flip (showIntAtBase 2 intToDigit) []
 
 -----
 
-addition :: Integer -> Integer -> Integer
-addition n1 n2 = n1 `xor` n2
+add :: Integer -> Integer -> Integer
+add n1 n2 = n1 `xor` n2
+
+multiply :: Integer -> Integer -> Integer
+multiply n1 n2 = toInteg $ fromInteg n1 `mulPolyBin` fromInteg n2
+
+reduce :: Int -> Integer -> Integer -> Integer
+reduce m fx p = toInteg $ reducePolyBin m (fromInteg fx) (fromInteg p)
 
 multiplication :: Integer -> Integer -> Integer
 multiplication n1 n2 = toInteg $ fromInteg n1 `mulPolyBin` fromInteg n2
