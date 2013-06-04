@@ -23,7 +23,7 @@ Library
                      Crypto.Number.Generate
                      Crypto.Number.Basic
                      Crypto.Number.Polynomial
-                     Crypto.Number.PolynomialBin
+                     Crypto.Number.F2
                      Crypto.Number.Prime
   ghc-options:       -Wall
 

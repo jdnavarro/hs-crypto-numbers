@@ -1,4 +1,4 @@
-module Crypto.Number.PolynomialBin
+module Crypto.Number.F2
     -- * F2m arithmetic operations over integers
     ( padd
     , pmod
