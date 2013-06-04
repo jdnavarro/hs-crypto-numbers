@@ -1,96 +1,63 @@
 module Crypto.Number.PolynomialBin
-    -- * binary polynomial operations
-    ( PolynomialBin
-    , toList
-    , fromList
-    , toPolynomial
-    , fromPolynomial
-    , mulPolyBin
-    , addPolyBin
-    , mulPolyBin
-    , divPolyBin
-    , reducePolyBin
-    -- * binary polynomial operations as integers
-    , add
-    , multiply
-    , multiplyF2m
+    -- * F2m arithmetic operations over integers
+    ( padd
+    , pmod
+    , pmul
+    -- * Arithmetic operations for F2m polynomials
+    , modF2m
+    , mulF2m
+    -- * Arithmetic operations for F2 polynomials
+    , addF2
+    , mulF2
     ) where
 
+import Control.Applicative (liftA2)
 import Data.Bits (xor)
-import Data.List (sort, elemIndices, intercalate)
+import Data.List (elemIndices, intercalate, group, sort)
 import Data.Char (intToDigit)
-import Numeric (readInt, showIntAtBase)
-import Control.Monad (join)
-import Control.Arrow ((***))
-import Data.Vector (Vector)
+import Data.Maybe (fromMaybe)
+import Numeric (showIntAtBase)
+import Data.Vector (Vector, (!?))
 import qualified Data.Vector as V
-import Crypto.Number.Polynomial (Monomial(..), Polynomial, mulPoly, divPoly)
-import qualified Crypto.Number.Polynomial as P
 
-newtype PolynomialBin = PolynomialBin (Vector Int) deriving (Eq,Ord)
+newtype F2 = F2 (Vector Int) deriving (Eq,Ord)
 
-instance Show PolynomialBin where
-    show (PolynomialBin v) = intercalate "+" $ map (("x^" ++) . show) $ V.toList v
+instance Show F2 where
+    show (F2 v) = intercalate "+" $ map (("x^" ++) . show) $ V.toList v
 
-toList :: PolynomialBin -> [Int]
-toList (PolynomialBin v) = V.toList v
-
-fromList :: [Int] -> PolynomialBin
-fromList = PolynomialBin . V.fromList . reverse . sort
-
--- TODO: is it worth Integral instance?
-toInteg :: PolynomialBin -> Integer
-toInteg (PolynomialBin v) =
-    readBin . reverse $ map (\n -> if n `V.elem` v then '1' else '0') [0 .. V.head v]
-
--- TODO: is it worth Num instance?
-fromInteg :: Integer -> PolynomialBin
-fromInteg n = fromList . map (m-) $ elemIndices '1' s
-  where s = showBin n
-        m = length s - 1
-
-toPolynomial :: PolynomialBin -> Polynomial
-toPolynomial = P.fromList . map (`Monomial` 1) . toList
-
-fromPolynomial :: Polynomial -> PolynomialBin
-fromPolynomial = fromList . map (\(Monomial w _) -> w)
-                          . filter (\(Monomial _ n) -> odd n)
-                          . P.toList
-
-addPolyBin :: PolynomialBin -> PolynomialBin -> PolynomialBin
-addPolyBin p1 p2 = fromInteg $ toInteg p1 `xor` toInteg p2
-
-mulPolyBin :: PolynomialBin -> PolynomialBin -> PolynomialBin
-mulPolyBin p1 p2 = fromPolynomial $ toPolynomial p1 `mulPoly` toPolynomial p2
-
-divPolyBin :: PolynomialBin -> PolynomialBin -> (PolynomialBin, PolynomialBin)
-divPolyBin p1 p2 = mapTuple fromPolynomial $ toPolynomial p1 `divPoly` toPolynomial p2
-    where mapTuple = join (***)
-
-reducePolyBin :: Int -> PolynomialBin -> PolynomialBin -> PolynomialBin
-reducePolyBin m fx@(PolynomialBin v0) p@(PolynomialBin v)
-    | m < n = reducePolyBin m fx
-            $ p `addPolyBin` (PolynomialBin $ V.map ((n - m) +) v0)
-    | otherwise = p
+fromInteg :: Integer -> F2
+fromInteg n = F2 $ V.fromList $ map (m-) $ elemIndices '1' s
   where
-    n = V.head v
+    s = showIntAtBase 2 intToDigit n []
+    m = length s - 1
 
-readBin :: String -> Integer
-readBin = fst . head . readInt 2 (`elem` "01") (\c -> if c == '1' then 1 else 0)
+toInteg :: F2 -> Integer
+toInteg (F2 v) = V.sum $ V.map (2^) v
 
-showBin :: Integer -> String
-showBin = flip (showIntAtBase 2 intToDigit) []
+padd :: Integer -> Integer -> Integer
+padd = xor
 
------
+pmul :: Int -> Integer -> Integer -> Integer -> Integer
+pmul m nx n1 n2 =
+    toInteg $ modF2m m (fromInteg nx) $ fromInteg n1 `mulF2` fromInteg n2
 
-add :: Integer -> Integer -> Integer
-add n1 n2 = n1 `xor` n2
+pmod :: Int -> Integer -> Integer -> Integer
+pmod m nx n = toInteg $ modF2m m (fromInteg nx) (fromInteg n)
 
-multiply :: Integer -> Integer -> Integer
-multiply n1 n2 = toInteg $ fromInteg n1 `mulPolyBin` fromInteg n2
+mulF2m :: Int -> F2 -> F2 -> F2 -> F2
+mulF2m m fx f1 f2 = modF2m m fx $ mulF2 f1 f2
 
-reduce :: Int -> Integer -> Integer -> Integer
-reduce m fx p = toInteg $ reducePolyBin m (fromInteg fx) (fromInteg p)
+modF2m :: Int -> F2 -> F2 -> F2
+modF2m m fx@(F2 vx) f@(F2 v)
+    | m < w = modF2m m fx $ f `addF2` (F2 $ V.map ((w - m) +) vx)
+    | otherwise = f
+  where
+    w = fromMaybe 0 $ v !? 0
 
-multiplyF2m :: Int -> Integer -> Integer -> Integer -> Integer
-multiplyF2m m fx p1 p2 = reduce m fx $ p1 `multiply` p2
+addF2 :: F2 -> F2 -> F2
+addF2 f1 f2 = fromInteg $ toInteg f1 `xor` toInteg f2
+
+mulF2 :: F2 -> F2 -> F2
+mulF2 (F2 v1) (F2 v2) =
+    F2 . V.fromList . reverse . map head . filter (odd . length) . group . sort
+       $ liftA2 (+) (V.toList v1) (V.toList v2)
