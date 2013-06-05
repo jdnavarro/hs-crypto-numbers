@@ -9,7 +9,7 @@ module Crypto.Number.F2
     -- * Arithmetic operations for F2 polynomials
     , addF2
     , mulF2
-    , divF2
+    , inverse
     ) where
 
 import Control.Applicative (liftA2)
@@ -21,6 +21,7 @@ import Numeric (showIntAtBase)
 import Control.Arrow (first)
 import Data.Vector (Vector, (!?))
 import qualified Data.Vector as V
+import Crypto.Number.Basic
 
 newtype F2 = F2 (Vector Int) deriving (Eq,Ord)
 
@@ -50,11 +51,11 @@ mulF2m :: Int -> F2 -> F2 -> F2 -> F2
 mulF2m m fx f1 f2 = modF2m m fx $ mulF2 f1 f2
 
 modF2m :: Int -> F2 -> F2 -> F2
-modF2m m fx@(F2 vx) f@(F2 v)
-    | m <= w = modF2m m fx $ f `addF2` (F2 $ V.map ((w - m) +) vx)
-    | otherwise = f
+modF2m m fx p
+    | m <= w = modF2m m fx $ p `addF2` mul (w - m) fx
+    | otherwise = p
   where
-    w = weight v
+    w = weight p
 
 addF2 :: F2 -> F2 -> F2
 addF2 f1 f2 = fromInteg $ toInteg f1 `xor` toInteg f2
@@ -64,17 +65,18 @@ mulF2 (F2 v1) (F2 v2) =
     F2 . V.fromList . reverse . map head . filter (odd . length) . group . sort
        $ liftA2 (+) (V.toList v1) (V.toList v2)
 
-divF2 :: F2 -> F2 -> (F2, F2)
-divF2 p1 p2@(F2 v2) = first (F2 . V.fromList) $ divLoop p1
-    where
-      divLoop d1@(F2 v1)
-          | V.null v1 = ([], d1)
-          | otherwise = if w >= 0
-                           then (w : l, remain)
-                           else ([], d1)
-        where
-          w = weight v1 - weight v2
-          (l, remain) = divLoop $ d1 `addF2` (p2 `mulF2` F2 (V.singleton w))
+inverse :: Int -> Integer -> Integer -> Integer
+inverse m fx p = loop (fromInteg p) (fromInteg fx) (fromInteg 1) (fromInteg 0)
+  where
+    loop u v g1 g2
+        | u == fromInteg 1 = toInteg $ modF2m m (fromInteg fx) g1
+        | otherwise =
+            let j = weight u - weight v
+            in if j < 0 then loop u (v `addF2` mul (-j) u) g1 (g2 `addF2` mul (-j) g1)
+                        else loop (u `addF2` mul j v) v (g1 `addF2` mul j g2) g2
 
-weight :: Vector Int -> Int
-weight v = fromMaybe 0 $ v !? 0
+mul :: Int -> F2 -> F2
+mul j (F2 v) = F2 $ V.map (j+) v
+
+weight :: F2 -> Int
+weight (F2 v) = fromMaybe 0 $ v !? 0
