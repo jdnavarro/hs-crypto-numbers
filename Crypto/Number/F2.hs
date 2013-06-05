@@ -51,7 +51,7 @@ mulF2m m fx f1 f2 = modF2m m fx $ mulF2 f1 f2
 
 modF2m :: Int -> F2 -> F2 -> F2
 modF2m m fx@(F2 vx) f@(F2 v)
-    | m < w = modF2m m fx $ f `addF2` (F2 $ V.map ((w - m) +) vx)
+    | m <= w = modF2m m fx $ f `addF2` (F2 $ V.map ((w - m) +) vx)
     | otherwise = f
   where
     w = weight v
