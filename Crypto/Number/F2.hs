@@ -9,6 +9,7 @@ module Crypto.Number.F2
     -- * Arithmetic operations for F2 polynomials
     , addF2
     , mulF2
+    , divF2
     ) where
 
 import Control.Applicative (liftA2)
@@ -17,6 +18,7 @@ import Data.List (elemIndices, intercalate, group, sort)
 import Data.Char (intToDigit)
 import Data.Maybe (fromMaybe)
 import Numeric (showIntAtBase)
+import Control.Arrow (first)
 import Data.Vector (Vector, (!?))
 import qualified Data.Vector as V
 
@@ -52,7 +54,7 @@ modF2m m fx@(F2 vx) f@(F2 v)
     | m < w = modF2m m fx $ f `addF2` (F2 $ V.map ((w - m) +) vx)
     | otherwise = f
   where
-    w = fromMaybe 0 $ v !? 0
+    w = weight v
 
 addF2 :: F2 -> F2 -> F2
 addF2 f1 f2 = fromInteg $ toInteg f1 `xor` toInteg f2
@@ -61,3 +63,18 @@ mulF2 :: F2 -> F2 -> F2
 mulF2 (F2 v1) (F2 v2) =
     F2 . V.fromList . reverse . map head . filter (odd . length) . group . sort
        $ liftA2 (+) (V.toList v1) (V.toList v2)
+
+divF2 :: F2 -> F2 -> (F2, F2)
+divF2 p1 p2@(F2 v2) = first (F2 . V.fromList) $ divLoop p1
+    where
+      divLoop d1@(F2 v1)
+          | V.null v1 = ([], d1)
+          | otherwise = if w >= 0
+                           then (w : l, remain)
+                           else ([], d1)
+        where
+          w = weight v1 - weight v2
+          (l, remain) = divLoop $ d1 `addF2` (p2 `mulF2` F2 (V.singleton w))
+
+weight :: Vector Int -> Int
+weight v = fromMaybe 0 $ v !? 0
