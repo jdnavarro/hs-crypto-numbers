@@ -3,13 +3,15 @@ module Crypto.Number.F2
     ( padd
     , pmod
     , pmul
+    , pinv
     -- * Arithmetic operations for F2m polynomials
-    , modF2m
     , mulF2m
+    , modF2m
+    , invF2m
     -- * Arithmetic operations for F2 polynomials
     , addF2
     , mulF2
-    , inverse
+    , invF2
     ) where
 
 import Control.Applicative (liftA2)
@@ -18,10 +20,8 @@ import Data.List (elemIndices, intercalate, group, sort)
 import Data.Char (intToDigit)
 import Data.Maybe (fromMaybe)
 import Numeric (showIntAtBase)
-import Control.Arrow (first)
 import Data.Vector (Vector, (!?))
 import qualified Data.Vector as V
-import Crypto.Number.Basic
 
 newtype F2 = F2 (Vector Int) deriving (Eq,Ord)
 
@@ -47,6 +47,9 @@ pmul m nx n1 n2 =
 pmod :: Int -> Integer -> Integer -> Integer
 pmod m nx n = toInteg $ modF2m m (fromInteg nx) (fromInteg n)
 
+pinv :: Int -> Integer -> Integer -> Integer
+pinv m fx p = toInteg $ invF2m m (fromInteg fx) (fromInteg p)
+
 mulF2m :: Int -> F2 -> F2 -> F2 -> F2
 mulF2m m fx f1 f2 = modF2m m fx $ mulF2 f1 f2
 
@@ -57,6 +60,9 @@ modF2m m fx p
   where
     w = weight p
 
+invF2m :: Int -> F2 -> F2 -> F2
+invF2m m fx p = modF2m m fx $ invF2 fx p
+
 addF2 :: F2 -> F2 -> F2
 addF2 f1 f2 = fromInteg $ toInteg f1 `xor` toInteg f2
 
@@ -65,11 +71,11 @@ mulF2 (F2 v1) (F2 v2) =
     F2 . V.fromList . reverse . map head . filter (odd . length) . group . sort
        $ liftA2 (+) (V.toList v1) (V.toList v2)
 
-inverse :: Int -> Integer -> Integer -> Integer
-inverse m fx p = loop (fromInteg p) (fromInteg fx) (fromInteg 1) (fromInteg 0)
+invF2 :: F2 -> F2 -> F2
+invF2 fx p = loop p fx (fromInteg 1) (fromInteg 0)
   where
     loop u v g1 g2
-        | u == fromInteg 1 = toInteg $ modF2m m (fromInteg fx) g1
+        | u == fromInteg 1 = g1
         | otherwise =
             let j = weight u - weight v
             in if j < 0 then loop u (v `addF2` mul (-j) u) g1 (g2 `addF2` mul (-j) g1)
