@@ -1,6 +1,8 @@
 module Crypto.Number.F2M
+    ( PolyBin
+    , fromList
     -- * F2M arithmetic operations over integers
-    ( addF2M
+    , addF2M
     , mulF2M
     , modF2M
     , invF2M
@@ -16,7 +18,7 @@ module Crypto.Number.F2M
 
 import Control.Applicative (liftA2)
 import Data.Bits (xor)
-import Data.List (elemIndices, intercalate, group, sort)
+import Data.List (elemIndices, intercalate, group, sort, sortBy)
 import Data.Char (intToDigit)
 import Data.Maybe (fromMaybe)
 import Numeric (showIntAtBase)
@@ -34,21 +36,24 @@ fromInteg n = PolyBin $ V.fromList $ map (m-) $ elemIndices '1' s
     s = showIntAtBase 2 intToDigit n []
     m = length s - 1
 
+fromList :: [Int] -> PolyBin
+fromList = PolyBin . V.fromList . sortBy (flip compare)
+
 toInteg :: PolyBin -> Integer
 toInteg (PolyBin v) = V.sum $ V.map (2^) v
 
 addF2M :: Integer -> Integer -> Integer
 addF2M = xor
 
-mulF2M :: Int -> Integer -> Integer -> Integer -> Integer
-mulF2M m nx n1 n2 =
-    toInteg $ modPolyF2M m (fromInteg nx) $ fromInteg n1 `mulPoly` fromInteg n2
+mulF2M :: Int -> PolyBin -> Integer -> Integer -> Integer
+mulF2M m fx n1 n2 =
+    toInteg $ modPolyF2M m fx $ fromInteg n1 `mulPoly` fromInteg n2
 
-modF2M :: Int -> Integer -> Integer -> Integer
-modF2M m nx n = toInteg $ modPolyF2M m (fromInteg nx) (fromInteg n)
+modF2M :: Int -> PolyBin -> Integer -> Integer
+modF2M m fx n = toInteg $ modPolyF2M m fx (fromInteg n)
 
-invF2M :: Int -> Integer -> Integer -> Integer
-invF2M m fx n = toInteg $ invPolyF2M m (fromInteg fx) (fromInteg n)
+invF2M :: Int -> PolyBin -> Integer -> Integer
+invF2M m fx n = toInteg $ invPolyF2M m fx (fromInteg n)
 
 mulPolyF2M :: Int -> PolyBin -> PolyBin -> PolyBin -> PolyBin
 mulPolyF2M m fx p1 p2 = modPolyF2M m fx $ mulPoly p1 p2
