@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns #-}
 
 import Test.Framework (defaultMain, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
@@ -58,7 +57,7 @@ prop_miller_rabin_valid (seed, PositiveSmall i)
     | otherwise =
         -- miller rabin only returns with certitude that the integer is composite.
         let b = withRNG seed (\g -> isProbablyPrime g i)
-         in (b == False && primalityTestNaive i == False) || b == True
+         in (not b && not (primalityTestNaive i)) || b
 
 prop_generate_valid :: (Seed, Positive Integer) -> Bool
 prop_generate_valid (seed, Positive h) =
@@ -69,13 +68,13 @@ withAleasInteger :: Rng -> Seed -> (Rng -> (a,Rng)) -> a
 withAleasInteger g (Seed i) f = fst $ f $ reseed (i2osp $ fromIntegral i) g
 
 withRNG :: Seed -> (Rng -> (a,Rng)) -> a
-withRNG seed f = withAleasInteger rng seed f
+withRNG = withAleasInteger rng
 
 newtype PositiveSmall = PositiveSmall Integer
                       deriving (Show,Eq)
 
 instance Arbitrary PositiveSmall where
-    arbitrary = PositiveSmall . fromIntegral <$> (resize (2^(20 :: Int)) (arbitrary :: Gen Int))
+    arbitrary = PositiveSmall . fromIntegral <$> resize (2^(20 :: Int)) (arbitrary :: Gen Int)
 
 data Range = Range Integer Integer
            deriving (Show,Eq)
