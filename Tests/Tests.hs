@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+module Main where
+
 import Test.Framework (defaultMain, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.Providers.HUnit (testCase)
@@ -18,6 +20,7 @@ import Crypto.Number.Basic
 import Crypto.Number.Generate
 import Crypto.Number.Prime
 import Crypto.Number.Serialize
+import Crypto.Number.F2M
 
 import RNG
 
@@ -40,6 +43,12 @@ prop_modinv_valid (Positive a, Positive m)
                              Just ainv -> (ainv * a) `mod` m == 1
                              Nothing   -> True
     | otherwise       = True
+
+prop_invF2M_valid :: (MFx, PositiveBig) -> Bool
+prop_invF2M_valid (MFx m fx, PositiveBig a) = inv a `mul` a == 1
+  where
+    mul = mulF2M m fx
+    inv = invF2M m fx
 
 prop_sqrti_valid :: Positive Integer -> Bool
 prop_sqrti_valid (Positive i) = l*l <= i && i <= u*u where (l, u) = sqrti i
@@ -93,6 +102,27 @@ instance Show Seed where
 instance Arbitrary Seed where
     arbitrary = arbitrary >>= \(Positive i) -> return (Seed i)
 
+
+data MFx = MFx Int PolyBin deriving (Show)
+
+instance Arbitrary MFx where
+    -- Rijndael and SEC2 Fx
+    arbitrary = elements $ map (\x -> MFx (head x) (fromList x))
+                         [ [8,4,3,1,0]
+                         , [163,7,6,3,0]
+                         , [233,74,0]
+                         , [239,36,0]
+                         , [239,158,0]
+                         , [283,12,7,5,0]
+                         , [409,87,0]
+                         , [571,10,5,2,0]
+                         ]
+
+newtype PositiveBig = PositiveBig Integer deriving (Show)
+
+instance Arbitrary PositiveBig where
+    arbitrary = PositiveBig <$> sized (\i -> choose (1, (fromIntegral i + 1) ^ 20))
+
 serializationKATTests = concatMap f vectors
     where f (v, bs) = [ testCase ("i2osp " ++ show v) (i2osp v  @=? bs)
                       , testCase ("os2ip " ++ show v) (os2ip bs @=? v)
@@ -120,6 +150,7 @@ main = defaultMain
         ]
     , testGroup "inverse"
         [ testProperty "inverse" prop_modinv_valid
+        , testProperty "inverseF2M" prop_invF2M_valid
         ]
     , testGroup "sqrt integer"
         [ testProperty "sqrt" prop_sqrti_valid
