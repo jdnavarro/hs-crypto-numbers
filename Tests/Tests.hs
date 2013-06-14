@@ -44,8 +44,8 @@ prop_modinv_valid (Positive a, Positive m)
                              Nothing   -> True
     | otherwise       = True
 
-prop_invF2M_valid :: (MFx, PositiveBig) -> Bool
-prop_invF2M_valid (MFx m fx, PositiveBig a) = inv a `mul` a == 1
+prop_invF2M_valid :: (MFx, Positive Integer) -> Bool
+prop_invF2M_valid (MFx m fx, Positive a) = inv a `mul` a == 1
   where
     mul = mulF2M m fx
     inv = invF2M m fx
@@ -117,11 +117,6 @@ instance Arbitrary MFx where
                          , [409,87,0]
                          , [571,10,5,2,0]
                          ]
-
-newtype PositiveBig = PositiveBig Integer deriving (Show)
-
-instance Arbitrary PositiveBig where
-    arbitrary = PositiveBig <$> sized (\i -> choose (1, (fromIntegral i + 1) ^ 20))
 
 serializationKATTests = concatMap f vectors
     where f (v, bs) = [ testCase ("i2osp " ++ show v) (i2osp v  @=? bs)
