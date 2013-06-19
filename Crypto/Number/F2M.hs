@@ -45,28 +45,29 @@ toInteg (PolyBin v) = V.sum $ V.map (2^) v
 addF2M :: Integer -> Integer -> Integer
 addF2M = xor
 
-mulF2M :: Int -> PolyBin -> Integer -> Integer -> Integer
-mulF2M m fx n1 n2 =
-    toInteg $ modPolyF2M m fx $ fromInteg n1 `mulPoly` fromInteg n2
+mulF2M :: PolyBin -> Integer -> Integer -> Integer
+mulF2M fx n1 n2 =
+    toInteg $ modPolyF2M fx $ fromInteg n1 `mulPoly` fromInteg n2
 
-modF2M :: Int -> PolyBin -> Integer -> Integer
-modF2M m fx n = toInteg $ modPolyF2M m fx (fromInteg n)
+modF2M :: PolyBin -> Integer -> Integer
+modF2M fx n = toInteg $ modPolyF2M fx (fromInteg n)
 
-invF2M :: Int -> PolyBin -> Integer -> Integer
-invF2M m fx n = toInteg $ invPolyF2M m fx (fromInteg n)
+invF2M :: PolyBin -> Integer -> Integer
+invF2M fx n = toInteg $ invPolyF2M fx (fromInteg n)
 
-mulPolyF2M :: Int -> PolyBin -> PolyBin -> PolyBin -> PolyBin
-mulPolyF2M m fx p1 p2 = modPolyF2M m fx $ mulPoly p1 p2
+mulPolyF2M :: PolyBin -> PolyBin -> PolyBin -> PolyBin
+mulPolyF2M fx p1 p2 = modPolyF2M fx $ mulPoly p1 p2
 
-modPolyF2M :: Int -> PolyBin -> PolyBin -> PolyBin
-modPolyF2M m fx p
-    | m <= w = modPolyF2M m fx $ p `addPoly` mul (w - m) fx
+modPolyF2M :: PolyBin -> PolyBin -> PolyBin
+modPolyF2M fx p
+    | m <= w = modPolyF2M fx $ p `addPoly` mul (w - m) fx
     | otherwise = p
   where
     w = weight p
+    m = weight fx
 
-invPolyF2M :: Int -> PolyBin -> PolyBin -> PolyBin
-invPolyF2M m fx p = modPolyF2M m fx $ invPoly fx p
+invPolyF2M :: PolyBin -> PolyBin -> PolyBin
+invPolyF2M fx p = modPolyF2M fx $ invPoly fx p
 
 addPoly :: PolyBin -> PolyBin -> PolyBin
 addPoly p1 p2 = fromInteg $ toInteg p1 `xor` toInteg p2
