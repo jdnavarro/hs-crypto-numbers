@@ -44,12 +44,6 @@ prop_modinv_valid (Positive a, Positive m)
                              Nothing   -> True
     | otherwise       = True
 
-prop_invF2M_valid :: (MFx, Positive Integer) -> Bool
-prop_invF2M_valid (MFx m fx, Positive a) = inv a `mul` a == 1
-  where
-    mul = mulF2M m fx
-    inv = invF2M m fx
-
 prop_sqrti_valid :: Positive Integer -> Bool
 prop_sqrti_valid (Positive i) = l*l <= i && i <= u*u where (l, u) = sqrti i
 
@@ -72,6 +66,12 @@ prop_generate_valid :: (Seed, Positive Integer) -> Bool
 prop_generate_valid (seed, Positive h) =
     let v = withRNG seed (\g -> generateMax g h)
      in (v >= 0 && v < h)
+
+prop_invF2M_valid :: (Fx, Positive Integer) -> Bool
+prop_invF2M_valid (Fx fx, Positive a) = inv a `mul` a == 1
+  where
+    mul = mulF2M fx
+    inv = invF2M fx
 
 withAleasInteger :: Rng -> Seed -> (Rng -> (a,Rng)) -> a
 withAleasInteger g (Seed i) f = fst $ f $ reseed (i2osp $ fromIntegral i) g
@@ -102,12 +102,11 @@ instance Show Seed where
 instance Arbitrary Seed where
     arbitrary = arbitrary >>= \(Positive i) -> return (Seed i)
 
+data Fx = Fx PolyBin deriving (Show)
 
-data MFx = MFx Int PolyBin deriving (Show)
-
-instance Arbitrary MFx where
+instance Arbitrary Fx where
     -- Rijndael and SEC2 Fx
-    arbitrary = elements $ map (\x -> MFx (head x) (fromList x))
+    arbitrary = elements $ map (Fx . fromList)
                          [ [8,4,3,1,0]
                          , [163,7,6,3,0]
                          , [233,74,0]
@@ -145,7 +144,6 @@ main = defaultMain
         ]
     , testGroup "inverse"
         [ testProperty "inverse" prop_modinv_valid
-        , testProperty "inverseF2M" prop_invF2M_valid
         ]
     , testGroup "sqrt integer"
         [ testProperty "sqrt" prop_sqrti_valid
@@ -157,5 +155,8 @@ main = defaultMain
         ]
     , testGroup "primality test"
         [ testProperty "miller-rabin" prop_miller_rabin_valid
+        ]
+    , testGroup "F2M"
+        [ testProperty "invF2M" prop_invF2M_valid
         ]
     ]
