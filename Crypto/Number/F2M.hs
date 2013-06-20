@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module Crypto.Number.F2M
     ( PolyBin
     , fromList
@@ -17,7 +18,7 @@ module Crypto.Number.F2M
     ) where
 
 import Control.Applicative (liftA2)
-import Data.Bits (xor)
+import Data.Bits (xor,shift)
 import Data.List (elemIndices, intercalate, group, sort, sortBy)
 import Data.Char (intToDigit)
 import Data.Maybe (fromMaybe)
@@ -50,7 +51,13 @@ mulF2M fx n1 n2 =
     toInteg $ modPolyF2M fx $ fromInteg n1 `mulPoly` fromInteg n2
 
 modF2M :: PolyBin -> Integer -> Integer
-modF2M fx n = toInteg $ modPolyF2M fx (fromInteg n)
+modF2M fx = go
+  where
+    x = toInteg fx
+    go !r | s < 0  = r
+          | otherwise = go $ r `xor` shift x s
+      where
+        s = fromIntegral $ imLog 2 r - imLog 2 x
 
 invF2M :: PolyBin -> Integer -> Integer
 invF2M fx n = toInteg $ invPolyF2M fx (fromInteg n)
@@ -59,12 +66,13 @@ mulPolyF2M :: PolyBin -> PolyBin -> PolyBin -> PolyBin
 mulPolyF2M fx p1 p2 = modPolyF2M fx $ mulPoly p1 p2
 
 modPolyF2M :: PolyBin -> PolyBin -> PolyBin
-modPolyF2M fx p
-    | m <= w = modPolyF2M fx $ p `addPoly` mul (w - m) fx
-    | otherwise = p
+modPolyF2M fx = go
   where
-    w = weight p
     m = weight fx
+    go !r | m <= w = go $ r `addPoly` mul (w - m) fx
+          | otherwise = r
+      where
+        w = weight r
 
 invPolyF2M :: PolyBin -> PolyBin -> PolyBin
 invPolyF2M fx p = modPolyF2M fx $ invPoly fx p
@@ -92,3 +100,10 @@ mul j (PolyBin v) = PolyBin $ V.map (j+) v
 
 weight :: PolyBin -> Int
 weight (PolyBin v) = fromMaybe 0 $ v !? 0
+
+-- Taken from http://www.haskell.org/pipermail/haskell-cafe/2008-February/039465.html
+imLog :: Integer -> Integer -> Integer
+imLog b x = if x < b then 0 else (x `div` b^l) `doDiv` l
+  where
+    l = 2 * imLog (b * b) x
+    doDiv !x' !l' = if x' < b then l' else (x' `div` b) `doDiv` (l' + 1)
