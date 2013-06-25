@@ -50,10 +50,9 @@ mulF2M :: PolyBin -> Integer -> Integer -> Integer
 mulF2M fx n1 n2 =
     toInteg $ modPolyF2M fx $ fromInteg n1 `mulPoly` fromInteg n2
 
-modF2M :: PolyBin -> Integer -> Integer
-modF2M fx = go
+modF2M :: Integer -> Integer -> Integer
+modF2M x = go
   where
-    x = toInteg fx
     go !r | s < 0  = r
           | otherwise = go $ r `xor` shift x s
       where
