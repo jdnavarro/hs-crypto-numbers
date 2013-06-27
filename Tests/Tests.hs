@@ -68,10 +68,7 @@ prop_generate_valid (seed, Positive h) =
      in (v >= 0 && v < h)
 
 prop_invF2M_valid :: (Fx, Positive Integer) -> Bool
-prop_invF2M_valid (Fx fx, Positive a) = inv a `mul` a == 1
-  where
-    mul = mulF2M fx
-    inv = invF2M fx
+prop_invF2M_valid (Fx fx, Positive a) = mulF2M fx a (invF2M fx a) == 1
 
 withAleasInteger :: Rng -> Seed -> (Rng -> (a,Rng)) -> a
 withAleasInteger g (Seed i) f = fst $ f $ reseed (i2osp $ fromIntegral i) g
@@ -102,11 +99,11 @@ instance Show Seed where
 instance Arbitrary Seed where
     arbitrary = arbitrary >>= \(Positive i) -> return (Seed i)
 
-data Fx = Fx PolyBin deriving (Show)
+data Fx = Fx Integer deriving (Show)
 
 instance Arbitrary Fx where
     -- Rijndael and SEC2 Fx
-    arbitrary = elements $ map (Fx . fromList)
+    arbitrary = elements $ map (Fx . toInteg . fromList)
                          [ [8,4,3,1,0]
                          , [163,7,6,3,0]
                          , [233,74,0]
