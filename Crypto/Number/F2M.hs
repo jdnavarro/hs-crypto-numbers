@@ -80,7 +80,14 @@ modF2M fx = go
         s = fromIntegral $ imLog 2 r - imLog 2 fx
 
 invF2M :: Integer -> Integer -> Integer
-invF2M fx n = toInteg $ invPolyF2M (fromInteg fx) (fromInteg n)
+invF2M fx n = go n fx 1 0
+    where
+      go u v g1 g2
+          | u == 1 = modF2M fx g1
+          | otherwise =
+              let j = fromIntegral $ imLog 2 u - imLog 2 v
+              in if j < 0 then go u (v `xor` shift u (-j)) g1 (g2 `xor` shift g1 (-j))
+                          else go (u `xor` shift v j) v (g1 `xor` shift g2 j) g2
 
 {--------------
 -  Poly F2M  -
