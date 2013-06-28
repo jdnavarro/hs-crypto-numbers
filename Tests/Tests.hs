@@ -103,16 +103,16 @@ data Fx = Fx Integer deriving (Show)
 
 instance Arbitrary Fx where
     -- Rijndael and SEC2 Fx
-    arbitrary = elements $ map (Fx . toInteg . fromList)
-                         [ [8,4,3,1,0]
-                         , [163,7,6,3,0]
-                         , [233,74,0]
-                         , [239,36,0]
-                         , [239,158,0]
-                         , [283,12,7,5,0]
-                         , [409,87,0]
-                         , [571,10,5,2,0]
-                         ]
+    arbitrary = elements [Fx 11692013098647223345629478661730264157247460344009] -- x^163+x^7+x^6+x^3+1
+                         -- [ [8,4,3,1,0]
+                         -- , [163,7,6,3,0]
+                         -- , [233,74,0]
+                         -- , [239,36,0]
+                         -- , [239,158,0]
+                         -- , [283,12,7,5,0]
+                         -- , [409,87,0]
+                         -- , [571,10,5,2,0]
+                         -- ]
 
 serializationKATTests = concatMap f vectors
     where f (v, bs) = [ testCase ("i2osp " ++ show v) (i2osp v  @=? bs)
