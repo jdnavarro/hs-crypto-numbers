@@ -67,8 +67,8 @@ prop_generate_valid (seed, Positive h) =
     let v = withRNG seed (\g -> generateMax g h)
      in (v >= 0 && v < h)
 
-prop_invF2M_valid :: (Fx, Positive Integer) -> Bool
-prop_invF2M_valid (Fx fx, Positive a) = mulF2M fx a (invF2M fx a) == 1
+prop_invF2M_valid :: PositiveLarge -> Bool
+prop_invF2M_valid (PositiveLarge a) = mulF2M 283 a (invF2M 283 a) == 1
 
 withAleasInteger :: Rng -> Seed -> (Rng -> (a,Rng)) -> a
 withAleasInteger g (Seed i) f = fst $ f $ reseed (i2osp $ fromIntegral i) g
@@ -81,6 +81,14 @@ newtype PositiveSmall = PositiveSmall Integer
 
 instance Arbitrary PositiveSmall where
     arbitrary = PositiveSmall . fromIntegral <$> resize (2^(20 :: Int)) (arbitrary :: Gen Int)
+
+newtype PositiveLarge = PositiveLarge Integer
+                      deriving (Show,Eq)
+
+instance Arbitrary PositiveLarge where
+    arbitrary = PositiveLarge . fromIntegral
+                            <$> sized (\n -> resize (n^(8::Int))
+                                      (arbitrary :: Gen (Positive Integer)))
 
 data Range = Range Integer Integer
            deriving (Show,Eq)
@@ -98,21 +106,6 @@ instance Show Seed where
 
 instance Arbitrary Seed where
     arbitrary = arbitrary >>= \(Positive i) -> return (Seed i)
-
-data Fx = Fx Integer deriving (Show)
-
-instance Arbitrary Fx where
-    -- Rijndael and SEC2 Fx
-    arbitrary = elements [Fx 11692013098647223345629478661730264157247460344009] -- x^163+x^7+x^6+x^3+1
-                         -- [ [8,4,3,1,0]
-                         -- , [163,7,6,3,0]
-                         -- , [233,74,0]
-                         -- , [239,36,0]
-                         -- , [239,158,0]
-                         -- , [283,12,7,5,0]
-                         -- , [409,87,0]
-                         -- , [571,10,5,2,0]
-                         -- ]
 
 serializationKATTests = concatMap f vectors
     where f (v, bs) = [ testCase ("i2osp " ++ show v) (i2osp v  @=? bs)
