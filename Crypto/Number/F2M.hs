@@ -3,6 +3,7 @@ module Crypto.Number.F2M
     , mulF2M
     , modF2M
     , invF2M
+    , divF2M
     ) where
 
 import Data.Bits (xor,shift,testBit)
@@ -35,6 +36,9 @@ invF2M fx n = go n fx 1 0
                            else go (u `xor` shift v j) v (g1 `xor` shift g2 j) g2
         where
           j = fromIntegral $ log2 u - log2 v
+
+divF2M :: Integer -> Integer -> Integer -> Integer
+divF2M fx n1 n2 = mulF2M fx n1 $ invF2M fx n2
 
 log2 :: Integer -> Integer
 log2 = imLog 2
