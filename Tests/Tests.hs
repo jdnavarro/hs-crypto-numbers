@@ -68,7 +68,7 @@ prop_generate_valid (seed, Positive h) =
      in (v >= 0 && v < h)
 
 prop_invF2M_valid :: PositiveLarge -> Bool
-prop_invF2M_valid (PositiveLarge a) = mulF2M 283 a (invF2M 283 a) == 1
+prop_invF2M_valid (PositiveLarge a) = maybe True ((1 ==) . mulF2M 0x11b a) (invF2M 0x11b a)
 
 withAleasInteger :: Rng -> Seed -> (Rng -> (a,Rng)) -> a
 withAleasInteger g (Seed i) f = fst $ f $ reseed (i2osp $ fromIntegral i) g

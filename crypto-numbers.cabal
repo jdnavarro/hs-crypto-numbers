@@ -18,6 +18,7 @@ Library
                    , bytestring
                    , vector
                    , crypto-random >= 0.0 && < 0.1
+                   , integer-gmp
   Exposed-modules:   Crypto.Number.ModArithmetic
                      Crypto.Number.Serialize
                      Crypto.Number.Generate
