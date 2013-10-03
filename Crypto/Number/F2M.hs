@@ -2,6 +2,7 @@
 module Crypto.Number.F2M
     ( addF2M
     , mulF2M
+    , squareF2M
     , modF2M
     , invF2M
     , divF2M
@@ -10,7 +11,7 @@ module Crypto.Number.F2M
 import Control.Applicative ((<$>))
 import GHC.Exts
 import GHC.Integer.Logarithms (integerLog2#)
-import Data.Bits (xor,shift,testBit)
+import Data.Bits ((.&.),(.|.),xor,shift,testBit)
 
 addF2M :: Integer -> Integer -> Integer
 addF2M = xor
@@ -37,6 +38,21 @@ mulF2M fx n1 n2 = modF2M fx
                             then go (n `xor` shift n1 s) (s - 1)
                             else go n (s - 1)
 
+-- | Documentation for squareF2M
+squareF2M :: Integer -> Integer -> Integer
+squareF2M fx = modF2M fx . square
+
+square :: Integer -> Integer
+square n1 = go n1 ln1
+  where
+    ln1 = log2 n1
+    go n s | s == 0 = n
+           | otherwise = go (x .|. y) (s - 1)
+      where
+        x = shift (shift n (2 * (s - ln1) - 1)) (2 * (ln1 - s) + 2)
+        y = n .&. (shift 1 (2 * (ln1 - s) + 1) - 1)
+{-# INLINE square #-}
+
 -- Extended Euclidean
 invF2M :: Integer -> Integer -> Maybe Integer
 invF2M fx n = go n fx 1 0
@@ -45,9 +61,9 @@ invF2M fx n = go n fx 1 0
           | u == 0 = Nothing
           | u == 1 = Just $ modF2M fx g1
           | otherwise = if j < 0
-                           then go u (v `xor` shift u (-j))
+                           then go u  (v  `xor` shift  u (-j))
                                    g1 (g2 `xor` shift g1 (-j))
-                           else go (u `xor` shift v j) v
+                           else go (u  `xor` shift v  j) v
                                    (g1 `xor` shift g2 j) g2
         where
           j = log2 u - log2 v

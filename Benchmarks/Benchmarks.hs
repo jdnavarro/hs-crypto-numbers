@@ -63,6 +63,8 @@ main = defaultMain
     , bgroup "F2M"
         [ bench "addition" $ nf (addF2M lg1) lg2
         , bench "multiplication" $ nf (mulF2M fx lg1) lg2
+        , bench "square" $ nf (squareF2M fx) lg1
+        , bench "square multiplication" $ nf (mulF2M fx lg1) lg1
         , bench "reduction" $ nf (modF2M fx) lg1
         , bench "inversion" $ nf (invF2M fx) lg1
         ]

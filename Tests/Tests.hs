@@ -70,6 +70,9 @@ prop_generate_valid (seed, Positive h) =
 prop_invF2M_valid :: PositiveLarge -> Bool
 prop_invF2M_valid (PositiveLarge a) = maybe True ((1 ==) . mulF2M 0x11b a) (invF2M 0x11b a)
 
+prop_squareF2M_valid :: PositiveLarge -> Bool
+prop_squareF2M_valid (PositiveLarge a) = mulF2M 0x11b a a == squareF2M 0x11b a
+
 withAleasInteger :: Rng -> Seed -> (Rng -> (a,Rng)) -> a
 withAleasInteger g (Seed i) f = fst $ f $ reseed (i2osp $ fromIntegral i) g
 
@@ -148,5 +151,6 @@ main = defaultMain
         ]
     , testGroup "F2M"
         [ testProperty "invF2M" prop_invF2M_valid
+        , testProperty "squareF2M" prop_squareF2M_valid
         ]
     ]
