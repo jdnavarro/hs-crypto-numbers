@@ -3,7 +3,6 @@ module Main where
 import Criterion.Main
 
 import Crypto.Number.Serialize
-import Crypto.Number.Generate
 import qualified Data.ByteString as B
 import Crypto.Number.ModArithmetic
 import Data.Bits
