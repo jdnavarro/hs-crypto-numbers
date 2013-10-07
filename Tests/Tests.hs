@@ -67,11 +67,11 @@ prop_generate_valid (seed, Positive h) =
     let v = withRNG seed (\g -> generateMax g h)
      in (v >= 0 && v < h)
 
-prop_invF2M_valid :: PositiveLarge -> Bool
-prop_invF2M_valid (PositiveLarge a) = maybe True ((1 ==) . mulF2M 0x11b a) (invF2M 0x11b a)
+prop_invF2M_valid :: Fx -> PositiveLarge -> Bool
+prop_invF2M_valid (Fx fx) (PositiveLarge a) = maybe True ((1 ==) . mulF2M fx a) (invF2M fx a)
 
-prop_squareF2M_valid :: PositiveLarge -> Bool
-prop_squareF2M_valid (PositiveLarge a) = mulF2M 0x11b a a == squareF2M 0x11b a
+prop_squareF2M_valid :: Fx -> PositiveLarge -> Bool
+prop_squareF2M_valid (Fx fx) (PositiveLarge a) = mulF2M fx a a == squareF2M fx a
 
 withAleasInteger :: Rng -> Seed -> (Rng -> (a,Rng)) -> a
 withAleasInteger g (Seed i) f = fst $ f $ reseed (i2osp $ fromIntegral i) g
@@ -92,6 +92,21 @@ instance Arbitrary PositiveLarge where
     arbitrary = PositiveLarge . fromIntegral
                             <$> sized (\n -> resize (n^(8::Int))
                                       (arbitrary :: Gen (Positive Integer)))
+
+newtype Fx = Fx Integer deriving (Show,Eq)
+
+-- Taken from SEC2
+instance Arbitrary Fx where
+    arbitrary = elements $ map Fx
+              [ 283  -- [8,4,3,1,0]
+              , 11692013098647223345629478661730264157247460344009  -- [163,7,6,3,0]
+              , 13803492693581127574869511724554050904902217944359662576256527028453377 -- [233,74,0]
+              , 883423532389192164791648750371459257913741948437809479060803169365786625 --  [239,36,0]
+              , 883423532389192164791649115746868590639471499359017658131558014629445633 -- [239,158,0]
+              , 15541351137805832567355695254588151253139254712417116170014499277911234281641667989665  -- [283,12,7,5,0]
+              , 1322111937580497197903830616065542079656809365928562438569297590548811582472622691650378420879430724437687334722581078999041 -- [409,87,0]
+              , 7729075046034516689390703781863974688597854659412869997314470502903038284579120849072387533163845155924927232063004354354730157322085975311485817346934161497393961629647909  -- [571,10,5,2,0]
+              ]
 
 data Range = Range Integer Integer
            deriving (Show,Eq)
