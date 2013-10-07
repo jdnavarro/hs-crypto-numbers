@@ -45,6 +45,7 @@ mulF2m fx n1 n2 = modF2m fx
            | otherwise = if testBit n2 s
                             then go (n `xor` shift n1 s) (s - 1)
                             else go n (s - 1)
+{-# INLINABLE mulF2m #-}
 
 -- | Squaring over F₂m.
 -- TODO: This is still slower than @mulF2m@.
@@ -53,6 +54,7 @@ mulF2m fx n1 n2 = modF2m fx
 squareF2m :: Integer  -- ^ Irreducible binary polynomial
           -> Integer -> Integer
 squareF2m fx = modF2m fx . square
+{-# INLINE squareF2m #-}
 
 square :: Integer -> Integer
 square n1 = go n1 ln1
@@ -80,6 +82,7 @@ invF2m fx n = go n fx 1 0
                                    (g1 `xor` shift g2 j) g2
         where
           j = log2 u - log2 v
+{-# INLINABLE invF2m #-}
 
 -- | Division over F₂m. If the dividend doesn't have an inverse it returns
 -- 'Nothing'.
@@ -88,6 +91,7 @@ divF2m :: Integer  -- ^ Irreducible binary polynomial
        -> Integer  -- ^ Quotient
        -> Maybe Integer
 divF2m fx n1 n2 = mulF2m fx n1 <$> invF2m fx n2
+{-# INLINE divF2m #-}
 
 
 log2 :: Integer -> Int
