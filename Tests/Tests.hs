@@ -20,7 +20,7 @@ import Crypto.Number.Basic
 import Crypto.Number.Generate
 import Crypto.Number.Prime
 import Crypto.Number.Serialize
-import Crypto.Number.F2M
+import Crypto.Number.F2m
 
 import RNG
 
@@ -67,11 +67,11 @@ prop_generate_valid (seed, Positive h) =
     let v = withRNG seed (\g -> generateMax g h)
      in (v >= 0 && v < h)
 
-prop_invF2M_valid :: Fx -> PositiveLarge -> Bool
-prop_invF2M_valid (Fx fx) (PositiveLarge a) = maybe True ((1 ==) . mulF2M fx a) (invF2M fx a)
+prop_invF2m_valid :: Fx -> PositiveLarge -> Bool
+prop_invF2m_valid (Fx fx) (PositiveLarge a) = maybe True ((1 ==) . mulF2m fx a) (invF2m fx a)
 
-prop_squareF2M_valid :: Fx -> PositiveLarge -> Bool
-prop_squareF2M_valid (Fx fx) (PositiveLarge a) = mulF2M fx a a == squareF2M fx a
+prop_squareF2m_valid :: Fx -> PositiveLarge -> Bool
+prop_squareF2m_valid (Fx fx) (PositiveLarge a) = mulF2m fx a a == squareF2m fx a
 
 withAleasInteger :: Rng -> Seed -> (Rng -> (a,Rng)) -> a
 withAleasInteger g (Seed i) f = fst $ f $ reseed (i2osp $ fromIntegral i) g
@@ -162,8 +162,8 @@ main = defaultMain
     , testGroup "primality test"
         [ testProperty "miller-rabin" prop_miller_rabin_valid
         ]
-    , testGroup "F2M"
-        [ testProperty "invF2M" prop_invF2M_valid
-        , testProperty "squareF2M" prop_squareF2M_valid
+    , testGroup "F2m"
+        [ testProperty "invF2m" prop_invF2m_valid
+        , testProperty "squareF2m" prop_squareF2m_valid
         ]
     ]

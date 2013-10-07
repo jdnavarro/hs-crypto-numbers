@@ -24,7 +24,7 @@ Library
                      Crypto.Number.Generate
                      Crypto.Number.Basic
                      Crypto.Number.Polynomial
-                     Crypto.Number.F2M
+                     Crypto.Number.F2m
                      Crypto.Number.Prime
   ghc-options:       -Wall
 

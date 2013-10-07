@@ -4,7 +4,7 @@ import Criterion.Main
 
 import Crypto.Number.Serialize
 import Crypto.Number.ModArithmetic
-import Crypto.Number.F2M
+import Crypto.Number.F2m
 import Data.Bits
 
 primes = [3, 5, 7, 29, 31, 211, 2309, 2311, 30029, 200560490131, 304250263527209]
@@ -60,13 +60,13 @@ main = defaultMain
         , bench "2^1234 mod 2^999" $ nf (exponantiation_rtl_binary 2 1234) (2^999)
         , bench "130^5432 mod 100^9990" $ nf (exponantiation_rtl_binary 130 5432) (100^9999)
         ]
-    , bgroup "F2M"
-        [ bench "addition" $ nf (addF2M lg1) lg2
-        , bench "multiplication" $ nf (mulF2M fx lg1) lg2
-        , bench "square" $ nf (squareF2M fx) lg1
-        , bench "square multiplication" $ nf (mulF2M fx lg1) lg1
-        , bench "reduction" $ nf (modF2M fx) lg1
-        , bench "inversion" $ nf (invF2M fx) lg1
+    , bgroup "F2m"
+        [ bench "addition" $ nf (addF2m lg1) lg2
+        , bench "multiplication" $ nf (mulF2m fx lg1) lg2
+        , bench "square" $ nf (squareF2m fx) lg1
+        , bench "square multiplication" $ nf (mulF2m fx lg1) lg1
+        , bench "reduction" $ nf (modF2m fx) lg1
+        , bench "inversion" $ nf (invF2m fx) lg1
         ]
     ]
     where b8    = B.replicate 8 0xf7

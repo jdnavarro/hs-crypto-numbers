@@ -4,13 +4,13 @@
     where applicable.
 -}
 {-# LANGUAGE MagicHash #-}
-module Crypto.Number.F2M
-    ( addF2M
-    , mulF2M
-    , squareF2M
-    , modF2M
-    , invF2M
-    , divF2M
+module Crypto.Number.F2m
+    ( addF2m
+    , mulF2m
+    , squareF2m
+    , modF2m
+    , invF2m
+    , divF2m
     ) where
 
 import Control.Applicative ((<$>))
@@ -19,26 +19,26 @@ import GHC.Integer.Logarithms (integerLog2#)
 import Data.Bits ((.&.),(.|.),xor,shift,testBit)
 
 -- | Addition over F₂m. This is just a synonym of  'xor'.
-addF2M :: Integer -> Integer -> Integer
-addF2M = xor
-{-# INLINE addF2M #-}
+addF2m :: Integer -> Integer -> Integer
+addF2m = xor
+{-# INLINE addF2m #-}
 
 -- | Binary polynomial reduction modulo using long division algorithm.
-modF2M :: Integer  -- ^ Irreducible binary polynomial
+modF2m :: Integer  -- ^ Irreducible binary polynomial
        -> Integer -> Integer
-modF2M fx = go
+modF2m fx = go
   where
     go n | s == 0  = n `xor` fx
          | s < 0 = n
          | otherwise = go $ n `xor` shift fx s
       where
         s = log2 n - log2 fx
-{-# INLINE modF2M #-}
+{-# INLINE modF2m #-}
 
 -- | Multiplication over F₂m.
-mulF2M :: Integer  -- ^ Irreducible binary polynomial
+mulF2m :: Integer  -- ^ Irreducible binary polynomial
        -> Integer -> Integer -> Integer
-mulF2M fx n1 n2 = modF2M fx
+mulF2m fx n1 n2 = modF2m fx
                 $ go (if n2 `mod` 2 == 1 then n1 else 0) (log2 n2)
   where
     go n s | s == 0  = n
@@ -50,9 +50,9 @@ mulF2M fx n1 n2 = modF2M fx
 -- TODO: This is still slower than @mulF2m@.
 
 -- Multiplication table? C?
-squareF2M :: Integer  -- ^ Irreducible binary polynomial
+squareF2m :: Integer  -- ^ Irreducible binary polynomial
           -> Integer -> Integer
-squareF2M fx = modF2M fx . square
+squareF2m fx = modF2m fx . square
 
 square :: Integer -> Integer
 square n1 = go n1 ln1
@@ -66,13 +66,13 @@ square n1 = go n1 ln1
 {-# INLINE square #-}
 
 -- | Inversion over  F₂m using extended Euclidean algorithm.
-invF2M :: Integer -- ^ Irreducible binary polynomial
+invF2m :: Integer -- ^ Irreducible binary polynomial
        -> Integer -> Maybe Integer
-invF2M fx n = go n fx 1 0
+invF2m fx n = go n fx 1 0
     where
       go u v g1 g2
           | u == 0 = Nothing
-          | u == 1 = Just $ modF2M fx g1
+          | u == 1 = Just $ modF2m fx g1
           | otherwise = if j < 0
                            then go u  (v  `xor` shift  u (-j))
                                    g1 (g2 `xor` shift g1 (-j))
@@ -83,11 +83,11 @@ invF2M fx n = go n fx 1 0
 
 -- | Division over F₂m. If the dividend doesn't have an inverse it returns
 -- 'Nothing'.
-divF2M :: Integer  -- ^ Irreducible binary polynomial
+divF2m :: Integer  -- ^ Irreducible binary polynomial
        -> Integer  -- ^ Dividend
        -> Integer  -- ^ Quotient
        -> Maybe Integer
-divF2M fx n1 n2 = mulF2M fx n1 <$> invF2M fx n2
+divF2m fx n1 n2 = mulF2m fx n1 <$> invF2m fx n2
 
 
 log2 :: Integer -> Int
