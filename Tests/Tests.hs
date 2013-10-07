@@ -89,9 +89,7 @@ newtype PositiveLarge = PositiveLarge Integer
                       deriving (Show,Eq)
 
 instance Arbitrary PositiveLarge where
-    arbitrary = PositiveLarge . fromIntegral
-                            <$> sized (\n -> resize (n^(8::Int))
-                                      (arbitrary :: Gen (Positive Integer)))
+    arbitrary = PositiveLarge <$> sized (\n -> choose (1, fromIntegral n^(100::Int)))
 
 newtype Fx = Fx Integer deriving (Show,Eq)
 
