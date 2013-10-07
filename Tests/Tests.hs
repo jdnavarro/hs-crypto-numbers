@@ -93,10 +93,10 @@ instance Arbitrary PositiveLarge where
 
 newtype Fx = Fx Integer deriving (Show,Eq)
 
--- Taken from SEC2
 instance Arbitrary Fx where
     arbitrary = elements $ map Fx
-              [ 283  -- [8,4,3,1,0]
+              [ 283  -- [8,4,3,1,0] Rijndael
+                -- SEC2 polynomials
               , 11692013098647223345629478661730264157247460344009  -- [163,7,6,3,0]
               , 13803492693581127574869511724554050904902217944359662576256527028453377 -- [233,74,0]
               , 883423532389192164791648750371459257913741948437809479060803169365786625 --  [239,36,0]

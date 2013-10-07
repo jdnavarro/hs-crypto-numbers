@@ -1,3 +1,8 @@
+{-| This module provides basic arithmetic operations over F₂m.
+
+    The 'm' parameter is implicitly derived from the irreducible polynomial
+    where applicable.
+-}
 {-# LANGUAGE MagicHash #-}
 module Crypto.Number.F2M
     ( addF2M
@@ -13,12 +18,14 @@ import GHC.Exts
 import GHC.Integer.Logarithms (integerLog2#)
 import Data.Bits ((.&.),(.|.),xor,shift,testBit)
 
+-- | Addition over F₂m. This is just a synonym of  'xor'.
 addF2M :: Integer -> Integer -> Integer
 addF2M = xor
 {-# INLINE addF2M #-}
 
--- Long division
-modF2M :: Integer -> Integer -> Integer
+-- | Binary polynomial reduction modulo using long division algorithm.
+modF2M :: Integer  -- ^ Irreducible binary polynomial
+       -> Integer -> Integer
 modF2M fx = go
   where
     go n | s == 0  = n `xor` fx
@@ -28,8 +35,9 @@ modF2M fx = go
         s = log2 n - log2 fx
 {-# INLINE modF2M #-}
 
--- Shift and add
-mulF2M :: Integer -> Integer -> Integer -> Integer
+-- | Multiplication over F₂m.
+mulF2M :: Integer  -- ^ Irreducible binary polynomial
+       -> Integer -> Integer -> Integer
 mulF2M fx n1 n2 = modF2M fx
                 $ go (if n2 `mod` 2 == 1 then n1 else 0) (log2 n2)
   where
@@ -38,8 +46,12 @@ mulF2M fx n1 n2 = modF2M fx
                             then go (n `xor` shift n1 s) (s - 1)
                             else go n (s - 1)
 
--- | Documentation for squareF2M
-squareF2M :: Integer -> Integer -> Integer
+-- | Squaring over F₂m.
+-- TODO: This is still slower than @mulF2m@.
+
+-- Multiplication table? C?
+squareF2M :: Integer  -- ^ Irreducible binary polynomial
+          -> Integer -> Integer
 squareF2M fx = modF2M fx . square
 
 square :: Integer -> Integer
@@ -53,8 +65,9 @@ square n1 = go n1 ln1
         y = n .&. (shift 1 (2 * (ln1 - s) + 1) - 1)
 {-# INLINE square #-}
 
--- Extended Euclidean
-invF2M :: Integer -> Integer -> Maybe Integer
+-- | Inversion over  F₂m using extended Euclidean algorithm.
+invF2M :: Integer -- ^ Irreducible binary polynomial
+       -> Integer -> Maybe Integer
 invF2M fx n = go n fx 1 0
     where
       go u v g1 g2
@@ -68,8 +81,14 @@ invF2M fx n = go n fx 1 0
         where
           j = log2 u - log2 v
 
-divF2M :: Integer -> Integer -> Integer -> Maybe Integer
+-- | Division over F₂m. If the dividend doesn't have an inverse it returns
+-- 'Nothing'.
+divF2M :: Integer  -- ^ Irreducible binary polynomial
+       -> Integer  -- ^ Dividend
+       -> Integer  -- ^ Quotient
+       -> Maybe Integer
 divF2M fx n1 n2 = mulF2M fx n1 <$> invF2M fx n2
+
 
 log2 :: Integer -> Int
 log2 0 = 0
