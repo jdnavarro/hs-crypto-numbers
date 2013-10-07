@@ -34,11 +34,12 @@ modF2m :: Integer  -- ^ Irreducible binary polynomial
        -> Integer -> Integer
 modF2m fx = go
   where
+    lfx = log2 fx
     go n | s == 0  = n `xor` fx
          | s < 0 = n
          | otherwise = go $ n `xor` shift fx s
       where
-        s = log2 n - log2 fx
+        s = log2 n - lfx
 {-# INLINE modF2m #-}
 
 -- | Multiplication over F₂m.
