@@ -5,6 +5,7 @@ import Criterion.Main
 import Crypto.Number.Serialize
 import Crypto.Number.ModArithmetic
 import Crypto.Number.F2m
+import qualified Data.ByteString as B
 import Data.Bits
 
 primes = [3, 5, 7, 29, 31, 211, 2309, 2311, 30029, 200560490131, 304250263527209]
