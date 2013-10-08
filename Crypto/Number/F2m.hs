@@ -1,7 +1,7 @@
-{-| This module provides basic arithmetic operations over F₂m.
-
-    The 'm' parameter is implicitly derived from the irreducible polynomial
-    where applicable.
+{-| This module provides basic arithmetic operations over F₂m. Performance is
+    not optimal and it doesn't provide protection against timing
+    attacks. The 'm' parameter is implicitly derived from the irreducible
+    polynomial where applicable.
 -}
 {-# LANGUAGE CPP #-}
 #ifdef VERSION_integer_gmp
